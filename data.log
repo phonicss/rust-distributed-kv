@@ -11,3 +11,4 @@ SET Name Ivan
 DELETE Name
 SET Name Ivan
 DELETE Name
+SET message Hello world from Rust

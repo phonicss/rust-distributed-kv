@@ -15,16 +15,11 @@ pub struct KvStore {
 impl KvStore {
 
     pub fn new() -> Result<KvStore, Error> {
-        let wal = match OpenOptions::new()
+        let wal = OpenOptions::new()
             .create(true)
             .read(true)
             .append(true)
-            .open("data.log") {
-                Ok(file) => file,
-                Err(error) => {
-                    return Err(error);
-            }
-        };
+            .open("data.log")?;
 
         let mut data: HashMap<String, String> = HashMap::new();
         let reader = BufReader::new(&wal);
@@ -32,8 +27,7 @@ impl KvStore {
         for line in reader.lines() {
             match line {
                 Ok(line) => {
-                    println!("{}", line);
-                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    let parts: Vec<&str> = line.splitn(3, ' ').collect();
                     if parts.len() == 3 && parts[0] == "SET" {
                         data.insert(
                             parts[1].to_string(),
