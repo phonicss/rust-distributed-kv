@@ -1,55 +1,32 @@
 use std::collections::HashMap;
-use std::f32::consts::E;
-use std::fs::File;
-use std::fs::OpenOptions;
 use std::io::Error;
-use std::io::Write;
-use std::io::{BufRead, BufReader};
+
+use crate::wal::Wal;
 
 
 pub struct KvStore {
     data: HashMap<String, String>,
-    wal: File,
+    wal: Wal,
 }
 
 impl KvStore {
-
     pub fn new() -> Result<KvStore, Error> {
-        let wal = OpenOptions::new()
-            .create(true)
-            .read(true)
-            .append(true)
-            .open("data.log")?;
-
+    
+        let wal = Wal::new()?;
         let mut data: HashMap<String, String> = HashMap::new();
-        let reader = BufReader::new(&wal);
+        wal.replay(&mut data)?;
 
-        for line in reader.lines() {
-            let line = line?;
-            let parts: Vec<&str> = line.splitn(3, ' ').collect();
-                if parts.len() == 3 && parts[0] == "SET" {
-                    data.insert(
-                        parts[1].to_string(),
-                        parts[2].to_string()
-                    ); 
-                } else if parts.len() == 2 && parts[0] == "DELETE" {
-                    data.remove(parts[1]);
-                } else {
-                    println!("Invalid WAL entry");
-                }
-        }
-
+    
         Ok(KvStore {
             data: data,
             wal: wal,
         })
-
-        
     }
+        
+
     
     pub fn set(&mut self, key: String, value: String) -> Result<(), Error> {
-        let command = format!("SET {} {}\n", key, value);
-        self.wal.write_all(command.as_bytes())?;
+        self.wal.write_set(&key, &value)?;
         self.data.insert(key,value);
         Ok(())
     }
@@ -60,8 +37,8 @@ impl KvStore {
     }
 
     pub fn delete(&mut self, key: &str) -> Result<Option<String>, Error> {
-        let command = format!("DELETE {}\n", key);
-        self.wal.write_all(command.as_bytes())?;
+        self.wal.write_delete(key)?;
         Ok(self.data.remove(key))  
     }
+
 }
