@@ -25,26 +25,18 @@ impl KvStore {
         let reader = BufReader::new(&wal);
 
         for line in reader.lines() {
-            match line {
-                Ok(line) => {
-                    let parts: Vec<&str> = line.splitn(3, ' ').collect();
-                    if parts.len() == 3 && parts[0] == "SET" {
-                        data.insert(
-                            parts[1].to_string(),
-                            parts[2].to_string()
-                        ); 
-                    } else if parts.len() == 2 && parts[0] == "DELETE" {
-                        data.remove(parts[1]);
-                    } else {
-                        println!("Invalid WAL entry");
-                    }
-                
+            let line = line?;
+            let parts: Vec<&str> = line.splitn(3, ' ').collect();
+                if parts.len() == 3 && parts[0] == "SET" {
+                    data.insert(
+                        parts[1].to_string(),
+                        parts[2].to_string()
+                    ); 
+                } else if parts.len() == 2 && parts[0] == "DELETE" {
+                    data.remove(parts[1]);
+                } else {
+                    println!("Invalid WAL entry");
                 }
-                Err(error) => {
-                    eprintln!("Error reading line: {}", error);
-                    return Err(error);
-                }
-            }
         }
 
         Ok(KvStore {
@@ -57,12 +49,7 @@ impl KvStore {
     
     pub fn set(&mut self, key: String, value: String) -> Result<(), Error> {
         let command = format!("SET {} {}\n", key, value);
-        match self.wal.write_all(command.as_bytes()) {
-            Ok(()) => {},
-            Err(error) => {
-                return Err(error);
-            }   
-        };
+        self.wal.write_all(command.as_bytes())?;
         self.data.insert(key,value);
         Ok(())
     }
@@ -74,16 +61,7 @@ impl KvStore {
 
     pub fn delete(&mut self, key: &str) -> Result<Option<String>, Error> {
         let command = format!("DELETE {}\n", key);
-        match self.wal.write_all(command.as_bytes()) {
-            Ok(()) => {},
-            Err(error) => {
-                return Err(error);
-            }
-        };
-        Ok(self.data.remove(key))
-        
-
-        
-        
+        self.wal.write_all(command.as_bytes())?;
+        Ok(self.data.remove(key))  
     }
 }
