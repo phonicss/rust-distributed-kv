@@ -1,17 +1,3 @@
-SET Name Ivan
-SET Name Ivan
-SET Name Ivan
-SET Name Ivan
-SET Name Ivan
-DELETE Name
-SET Name Ivan
-SET Name Ivan
-DELETE Name
-SET Name Ivan
-DELETE Name
-SET Name Ivan
-DELETE Name
+SET Name John
 SET message Hello world from Rust
-SET Name Ivan
-DELETE Name
-SET Name Ivan
+SET Age 33

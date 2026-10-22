@@ -42,13 +42,37 @@ impl Wal {
     pub fn write_set(&mut self, key: &str, value: &str) -> Result<(), Error> {
         let command = format!("SET {} {}\n", key, value);
         self.file.write_all(command.as_bytes())?;
+        self.file.sync_data()?;
         Ok(())
     }
 
     pub fn write_delete(&mut self, key: &str) -> Result<(), Error> {
         let command = format!("DELETE {}\n", key);
         self.file.write_all(command.as_bytes())?;
+        self.file.sync_data()?;
         Ok(())
+    }
+
+    pub fn compact(&mut self, data: &HashMap<String, String>) -> Result<(), Error> {
+        let mut compact_file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .create(true)
+        .open("data.log.compact")?;
+        for (key, value) in data {
+            let command = format!("SET {} {}\n", key, value);
+            compact_file.write_all(command.as_bytes())?;
+        }
+        compact_file.sync_data()?;
+        std::fs::rename("data.log.compact", "data.log")?;
+        let file = OpenOptions::new()
+            .create(true)
+            .read(true)
+            .append(true)
+            .open("data.log")?;
+        self.file = file;
+        Ok(())
+        
     }
 
 }

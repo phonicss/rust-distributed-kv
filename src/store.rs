@@ -41,4 +41,9 @@ impl KvStore {
         Ok(self.data.remove(key))  
     }
 
+    pub fn compact(&mut self) -> Result<(), Error> {
+        self.wal.compact(&self.data)
+        
+    }
+
 }
