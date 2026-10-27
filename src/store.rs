@@ -14,10 +14,7 @@ impl KvStore {
         let mut data: HashMap<String, String> = HashMap::new();
         wal.replay(&mut data)?;
 
-        Ok(KvStore {
-            data: data,
-            wal: wal,
-        })
+        Ok(KvStore { data, wal })
     }
 
     pub fn set(&mut self, key: String, value: String) -> Result<(), Error> {

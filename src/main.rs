@@ -27,10 +27,7 @@ fn handle_client(stream: TcpStream, store: Arc<RwLock<KvStore>>) -> Result<(), s
                 Command::Get(key) => {
                     let value = {
                         let guard = store.read().unwrap();
-                        match guard.get(&key) {
-                            Some(value) => Some(value.clone()),
-                            None => None,
-                        }
+                        guard.get(&key).map(|value| value.clone())
                     };
 
                     match value {

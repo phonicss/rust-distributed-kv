@@ -1,3 +1,0 @@
-SET Name John
-SET message Hello world from Rust
-SET Age 33
